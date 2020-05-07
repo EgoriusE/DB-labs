@@ -1,6 +1,7 @@
 from ArtistGenerator import ArtistGenerator
 from AlbumGenerator import AlbumGenerator
 from SongGenerator import SongGenerator
+from PrizeGenerator import PrizeGenerator
 from PlaylistGenerator import PlaylistGenerator
 from UserGenerator import UserGenerator
 from GroupGenerator import GroupGenerator
@@ -31,8 +32,8 @@ def add_songs(n):
     for s in data:
         params = song_generator.get_params()
         print('id: ', s, params, sep=': ')
-        cursor.execute('insert into song (id, name, path, album) values (%s, %s, %s, %s);commit;',
-                       (s, params.get('name'), params.get('path'), params.get('album')))
+        cursor.execute('insert into song (id, name, path, album, year) values (%s, %s, %s, %s, %s);commit;',
+                       (s, params.get('name'), params.get('path'), params.get('album'), params.get('year')))
     print(n, "Songs added", sep=' ')
     close_connection(cursor, conn)
 
@@ -46,10 +47,9 @@ def add_albums(n):
         params = gen_albums.get_params()
         print('id: ', d, params, sep=': ')
         cursor.execute(
-            'insert into album (id, name, year, duration, quantity, icon_path) values (%s, %s, %s, %s, %s, '
-            '%s);commit;',
+            'insert into album (id, name, year, duration, quantity, icon_path, type) values (%s, %s, %s, %s, %s, %s, %s);commit;',
             (d, params.get('name'), params.get('year'), params.get('duration'), params.get('quantity'),
-             params.get('icon_path')))
+             params.get('icon_path'), params.get('type')))
     print(n, "Albums added", sep=' ')
     close_connection(cursor, conn)
 
@@ -62,8 +62,8 @@ def add_artists(n):
         params = gen_artists.get_params()
         print(a, params, sep=': ')
         cursor.execute(
-            'insert into artist (name, "desc", country, icon_path, "group") values (%s, %s, %s, %s, %s);commit;',
-            (a, params.get('desc'), params.get('country'), params.get('icon_path'), params.get('group')))
+            'insert into artist (name, "desc", country, icon_path) values (%s, %s, %s, %s );commit;',
+            (a, params.get('desc'), params.get('country'), params.get('icon_path')))
     print(n, "Artists added", sep=' ')
     close_connection(cursor, conn)
 
@@ -158,6 +158,36 @@ def add_likes():
     close_connection(cursor, conn)
 
 
+def add_prizers(n):
+    cursor, conn = open_connection()
+    gen_prizers = PrizeGenerator()
+    data = gen_prizers.get_primary_key_data(n)
+    for id in data:
+        params = gen_prizers.get_params()
+        print('id: ', id, params, sep=': ')
+        cursor.execute(
+            'insert into prize (id, name, year, description) values (%s, %s, %s, %s);commit;',
+            (id, params.get('name'), params.get('year'), params.get('description')))
+    print(n, "Prizes added", sep=' ')
+    close_connection(cursor, conn)
+
+
+def add_history_artist(n):
+    cursor, conn = open_connection()
+    cursor.execute('SELECT count(*) FROM artist;')
+    artist_length = cursor.fetchone()[0]
+    for i in range(0, int(artist_length / 4)):
+        cursor.execute('SELECT name FROM "group" ORDER BY RANDOM() LIMIT 1;')
+        group = cursor.fetchone()
+        cursor.execute('SELECT name FROM artist ORDER BY RANDOM() LIMIT 1;')
+        artist = cursor.fetchone()
+        cursor.execute(
+            'insert into history_artist_table (artist, "group", start_date, end_date) values (%s, %s, %s, %s);commit;',
+            (artist, group, random.randint(1500, 2020), random.randint(1500, 2020)))
+    print(n, "History added", sep=' ')
+    close_connection(cursor, conn)
+
+
 def add_songs_area(n):
     add_albums(n)
     add_songs(n)
@@ -168,6 +198,7 @@ def add_songs_area(n):
 def add_groups_area(n):
     add_groups(n)
     add_artists(n)
+    add_history_artist(n)
     add_groups_table()
     add_artists_table()
 
@@ -181,3 +212,8 @@ def add_all(n):
     add_songs_area(n)
     add_groups_area(n)
     add_users_area(n)
+    add_prizers_area(n)
+
+
+def add_prizers_area(n):
+    add_prizers(n)

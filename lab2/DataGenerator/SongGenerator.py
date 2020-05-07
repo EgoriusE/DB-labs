@@ -15,6 +15,7 @@ class SongGenerator(BaseGenerator):
     def get_params(self):
         song = {
             'name': self.person.first_name(),
+            'year': self.generic.datetime.year(),
             'path': self.generic.path.project_dir(),
         }
 

@@ -3,6 +3,7 @@ from Adder import *
 from Utils import *
 from Deleter import *
 
+
 @click.group()
 def cli():
     pass
@@ -30,8 +31,12 @@ def add(table, n):
         add_groups_area(n)
     elif table == "users_area":
         add_users_area(n)
+    elif table == "prizes_area":
+        add_prizers_area(n)
     elif table == "all":
         add_all(n)
+    else:
+        print('table does not exist')
 
 
 @click.command()
@@ -58,10 +63,13 @@ def delete(table):
         delete_groups_area(cursor)
     elif table == "users_area":
         delete_users_area(cursor)
+    elif table == "prizers_area":
+        delete_prizers_area(cursor)
     elif table == "all":
         delete_users_area(cursor)
         delete_groups_area(cursor)
         delete_songs_area(cursor)
+        delete_prizers_area(cursor)
 
     cursor.execute("commit;")
     print("All records were deleted in ", table)

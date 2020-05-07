@@ -1,4 +1,16 @@
 from BaseGenerator import BaseGenerator
+from enum import Enum
+import random
+
+
+class AlbumType(Enum):
+    album = 'album'
+    compilation = 'compilation'
+    concert = 'concert'
+
+    @classmethod
+    def get_type(cls):
+        return random.choice([AlbumType.album.value, AlbumType.compilation.value, AlbumType.concert.value])
 
 
 class AlbumGenerator(BaseGenerator):
@@ -9,7 +21,8 @@ class AlbumGenerator(BaseGenerator):
             'year': self.generic.datetime.year(),
             'duration': self.generic.datetime.time(),
             'quantity': self.generic.numbers.integer_number(start=0, end=100),
-            'icon_path': self.generic.path.project_dir()
+            'icon_path': self.generic.path.project_dir(),
+            'type': AlbumType.get_type()
         }
         return album
 

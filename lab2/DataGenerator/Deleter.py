@@ -1,5 +1,3 @@
-
-
 def delete_users_area(cursor):
     cursor.execute('delete from like_song;')
     cursor.execute('delete from like_album;')
@@ -8,7 +6,14 @@ def delete_users_area(cursor):
     cursor.execute('delete from "user";')
 
 
+def delete_prizers_area(cursor):
+    cursor.execute('delete from prizes_songs_table;')
+    cursor.execute('delete from prizes_albums_table;')
+    cursor.execute('delete from prize;')
+
+
 def delete_groups_area(cursor):
+    cursor.execute('delete from history_artist_table')
     cursor.execute('delete from groups_table')
     cursor.execute('delete from artists_table')
     cursor.execute('delete from artist;')
