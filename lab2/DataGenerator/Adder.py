@@ -25,19 +25,6 @@ def add_playlists(n):
     close_connection(cursor, conn)
 
 
-def add_songs(n):
-    cursor, conn = open_connection()
-    song_generator = SongGenerator()
-    data = song_generator.get_primary_key_data(n)
-    for s in data:
-        params = song_generator.get_params()
-        print('id: ', s, params, sep=': ')
-        cursor.execute('insert into song (id, name, path, album, year) values (%s, %s, %s, %s, %s);commit;',
-                       (s, params.get('name'), params.get('path'), params.get('album'), params.get('year')))
-    print(n, "Songs added", sep=' ')
-    close_connection(cursor, conn)
-
-
 def add_albums(n):
     cursor, conn = open_connection()
 
@@ -51,6 +38,19 @@ def add_albums(n):
             (d, params.get('name'), params.get('year'), params.get('duration'), params.get('quantity'),
              params.get('icon_path'), params.get('type')))
     print(n, "Albums added", sep=' ')
+    close_connection(cursor, conn)
+
+
+def add_songs(n):
+    cursor, conn = open_connection()
+    song_generator = SongGenerator()
+    data = song_generator.get_primary_key_data(n)
+    for s in data:
+        params = song_generator.get_params()
+        print('id: ', s, params, sep=': ')
+        cursor.execute('insert into song (id, name, path, album, year) values (%s, %s, %s, %s, %s);commit;',
+                       (s, params.get('name'), params.get('path'), params.get('album'), params.get('year')))
+    print(n, "Songs added", sep=' ')
     close_connection(cursor, conn)
 
 
@@ -96,13 +96,15 @@ def add_users(n):
 
 def add_playlists_table():
     cursor, conn = open_connection()
-    cursor.execute('SELECT count(*) FROM playlist;')
-    length_playlist = cursor.fetchone()[0]
+    cursor.execute('SELECT id FROM playlist;')
+    id_playlist = cursor.fetchall()
+    cursor.execute('SELECT id FROM song;')
+    id_song = cursor.fetchall()
     cursor.execute('SELECT count(*) FROM song;')
     length_song = cursor.fetchone()[0]
     for i in range(0, int(length_song / 4)):
         cursor.execute('insert into playlists_table (playlist, song) VALUES (%s, %s);',
-                       (random.randint(0, length_playlist - 1), random.randint(0, length_song - 1)))
+                       (random.choice(id_playlist), random.choice(id_song)))
     close_connection(cursor, conn)
 
 
@@ -110,12 +112,15 @@ def add_groups_table():
     cursor, conn = open_connection()
     cursor.execute('SELECT count(*) FROM song;')
     length_song = cursor.fetchone()[0]
+
+    cursor.execute('SELECT id FROM song;')
+    id_song = cursor.fetchall()
+
+    cursor.execute('SELECT name FROM "group";')
+    id_group = cursor.fetchall()
     for i in range(0, int(length_song / 4)):
-        cursor.execute('SELECT name FROM "group" ORDER BY RANDOM() LIMIT 1;')
-        creator = cursor.fetchone()
-        print(creator)
         cursor.execute('insert into groups_table (creator, song) VALUES (%s, %s);commit;',
-                       (creator, random.randint(0, length_song - 1)))
+                       (random.choice(id_group), random.choice(id_song)))
     close_connection(cursor, conn)
 
 
@@ -123,12 +128,16 @@ def add_artists_table():
     cursor, conn = open_connection()
     cursor.execute('SELECT count(*) FROM song;')
     length_song = cursor.fetchone()[0]
+
+    cursor.execute('SELECT id FROM song;')
+    id_song = cursor.fetchall()
+
+    cursor.execute('SELECT name FROM artist;')
+    id_artist = cursor.fetchall()
+
     for i in range(0, int(length_song / 4)):
-        cursor.execute('SELECT name FROM "artist" ORDER BY RANDOM() LIMIT 1;')
-        creator = cursor.fetchone()
-        print(creator)
         cursor.execute('insert into artists_table (creator,song) VALUES (%s, %s);commit;',
-                       (creator, random.randint(0, length_song - 1)))
+                       (random.choice(id_artist), random.choice(id_song)))
     close_connection(cursor, conn)
 
 
@@ -136,25 +145,31 @@ def add_likes():
     cursor, conn = open_connection()
     cursor.execute('SELECT count(*) FROM "user";')
     length_user = cursor.fetchone()[0]
-    cursor.execute('SELECT count(*) FROM album;')
-    length_album = cursor.fetchone()[0]
-    cursor.execute('SELECT count(*) FROM song;')
-    length_song = cursor.fetchone()[0]
-    cursor.execute('SELECT count(*) FROM playlist;')
-    length_playlist = cursor.fetchone()[0]
+
+    cursor.execute('SELECT id FROM song;')
+    id_song = cursor.fetchall()
+
+    cursor.execute('SELECT id FROM album;')
+    id_album = cursor.fetchall()
+
+    cursor.execute('SELECT email FROM "user";')
+    id_user = cursor.fetchall()
+
+    cursor.execute('SELECT name FROM "group";')
+    id_group = cursor.fetchall()
+
+    cursor.execute('SELECT id FROM playlist;')
+    id_playlist = cursor.fetchall()
+
     for i in range(0, int(length_user / 4)):
-        cursor.execute('SELECT email FROM "user" ORDER BY RANDOM() LIMIT 1;')
-        user = cursor.fetchone()
-        cursor.execute('SELECT name FROM "group" ORDER BY RANDOM() LIMIT 1;')
-        group = cursor.fetchone()
         cursor.execute('insert into like_song ("user",song) VALUES (%s, %s);commit;',
-                       (user, random.randint(0, length_song - 1)))
+                       (random.choice(id_user), random.choice(id_song)))
         cursor.execute('insert into like_album ("user",album) VALUES (%s, %s);commit;',
-                       (user, random.randint(0, length_album - 1)))
+                       (random.choice(id_user), random.choice(id_album)))
         cursor.execute('insert into like_group ("user","group") VALUES (%s, %s);commit;',
-                       (user, group))
+                       (random.choice(id_user), random.choice(id_group)))
         cursor.execute('insert into like_playlist ("user",playlist) VALUES (%s, %s);commit;',
-                       (user, random.randint(0, length_playlist - 1)))
+                       (random.choice(id_user), random.choice(id_playlist)))
     close_connection(cursor, conn)
 
 
@@ -176,14 +191,17 @@ def add_history_artist(n):
     cursor, conn = open_connection()
     cursor.execute('SELECT count(*) FROM artist;')
     artist_length = cursor.fetchone()[0]
+
+    cursor.execute('SELECT name FROM artist;')
+    id_artist = cursor.fetchall()
+
+    cursor.execute('SELECT name FROM "group";')
+    id_group = cursor.fetchall()
+
     for i in range(0, int(artist_length / 4)):
-        cursor.execute('SELECT name FROM "group" ORDER BY RANDOM() LIMIT 1;')
-        group = cursor.fetchone()
-        cursor.execute('SELECT name FROM artist ORDER BY RANDOM() LIMIT 1;')
-        artist = cursor.fetchone()
         cursor.execute(
             'insert into history_artist_table (artist, "group", start_date, end_date) values (%s, %s, %s, %s);commit;',
-            (artist, group, random.randint(1500, 2020), random.randint(1500, 2020)))
+            (random.choice(id_artist), random.choice(id_group), random.randint(1500, 2020), random.randint(1500, 2020)))
     print(n, "History added", sep=' ')
     close_connection(cursor, conn)
 
